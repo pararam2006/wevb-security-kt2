@@ -1,7 +1,14 @@
 const express = require('express');
 const app = express();
+const DOMPurify = require('dompurify');
+const helmet = require('helmet');
 
-app.use(express.urlencoded({ extended: true }));
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],  // Блокирует inline-скрипты
+    }
+}));
 app.set('view engine', 'ejs');
 
 // "База данных" комментариев
@@ -14,7 +21,8 @@ app.get('/', (req, res) => {
 
 // Сохранение комментария (без санитизации)
 app.post('/comment', (req, res) => {
-    comments.push(req.body.text);
+    const cleanText = DOMPurify.sanitize(req.body.text);  // Санитизация
+    comments.push(cleanText);
     res.redirect('/');
 });
 
